@@ -8,11 +8,6 @@ describe('Single page sidebar', function () {
 	before('Create new page named "' + pageSetup.title + '".', function () {
 		cy.insertPost(pageSetup.title, pageSetup.content, 'page');
 
-		cy.setCustomizeSettings({
-			neve_migrated_hfg_colors: true,
-			nav_menu_locations: [],
-			custom_css_post_id: -1,
-		});
 		cy.get('.post-publish-panel__postpublish-header a')
 			.contains(pageSetup.title)
 			.should('have.attr', 'href')
@@ -45,40 +40,36 @@ describe('Single page sidebar', function () {
 		cy.get('.nv-content-wrap').should('contain', pageSetup.content);
 	});
 
-	context('Check sidebar layout', function () {
-		beforeEach(function () {
-			cy.loginWithRequest(pageSetup.url);
-			cy.clearWelcome();
+	it.only('Check sidebar layout', function () {
+		cy.loginWithRequest(pageSetup.url);
+		const pageId = window.localStorage.getItem('pageId');
+		cy.clearWelcome();
+
+		cy.updatePageOrPostByRequest(pageId, 'pages', {
+			meta: {
+				neve_meta_sidebar: 'full-width',
+			},
+		}).then(() => {
+			cy.visit(pageSetup.url);
+			cy.get('.nv-sidebar-wrap').should('not.exist');
+			cy.get('#wp-admin-bar-edit a').click();
 		});
 
-		it('Full-width', function () {
-			cy.updatePageOrPostByRequest(window.localStorage.getItem('pageId'), 'pages', {
-				meta: {
-					neve_meta_sidebar: 'full-width',
-				},
-			}).then(() => {
-				cy.visit(pageSetup.url);
-			});
-			cy.get('.nv-sidebar-wrap').should('not.exist');
-		});
-		it('Left', function () {
-			cy.updatePageOrPostByRequest(window.localStorage.getItem('pageId'), 'pages', {
-				meta: {
-					neve_meta_sidebar: 'left',
-				},
-			}).then(() => {
-				cy.visit(pageSetup.url);
-			});
+		cy.updatePageOrPostByRequest(pageId, 'pages', {
+			meta: {
+				neve_meta_sidebar: 'left',
+			},
+		}).then(() => {
+			cy.visit(pageSetup.url);
 			cy.get('.nv-sidebar-wrap').should('have.class', 'nv-left');
 		});
-		it('Right', function () {
-			cy.updatePageOrPostByRequest(window.localStorage.getItem('pageId'), 'pages', {
-				meta: {
-					neve_meta_sidebar: 'right',
-				},
-			}).then(() => {
-				cy.visit(pageSetup.url);
-			});
+
+		cy.updatePageOrPostByRequest(pageId, 'pages', {
+			meta: {
+				neve_meta_sidebar: 'right',
+			},
+		}).then(() => {
+			cy.visit(pageSetup.url);
 			cy.get('.nv-sidebar-wrap').should('have.class', 'nv-right');
 		});
 	});
